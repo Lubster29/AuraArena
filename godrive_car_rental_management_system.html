@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDrive - Premium Car Rental & Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            400: '#60a5fa',
+                            500: '#3b82f6', // Electric Blue
+                            600: '#2563eb', // Active Nav Blue
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        emeraldBrand: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                        amber: {
+                            500: '#f59e0b',
+                        },
+                        darkBg: '#090d14',
+                        cardBg: '#111827',
+                        cardBorder: '#1f2937'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS for Animations, Smooth Scrolling & Printable Invoice -->
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #090d14;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphism effects */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(9, 13, 20, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Lag-Free Active Navbar Highlight */
+        .nav-link {
+            transition: color 0.15s ease-out;
+            will-change: color;
+            position: relative;
+        }
+
+        .nav-item-active {
+            color: #3b82f6 !important;
+            font-weight: 700 !important;
+        }
+
+        .nav-item-active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 2.5px;
+            background: #3b82f6;
+            border-radius: 99px;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
+            animation: fadeInIndicator 0.2s ease-out forwards;
+        }
+
+        @keyframes fadeInIndicator {
+            from { opacity: 0; transform: scaleX(0.5); }
+            to { opacity: 1; transform: scaleX(1); }
+        }
+
+        /* Card Hover Effects */
+        .car-card {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease-out, border-color 0.25s ease-out;
+        }
+        .car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .carousel-snap {
+            scroll-snap-type: x mandatory;
+        }
+        .carousel-item {
+            scroll-snap-align: start;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-100%) translateX(-50%); opacity: 0; }
+            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+        }
+        .toast-animate {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        /* PRINT STYLING FOR INVOICE */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoiceModal, #invoiceModal * {
+                visibility: visible;
+            }
+            #invoiceModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .printable-card {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+            }
+            .printable-text-dark {
+                color: #000 !important;
+            }
+            .printable-text-gray {
+                color: #555 !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-600 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-nav transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- GoDrive Brand Logo -->
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="scrollToTop()">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-600 via-brand-500 to-emeraldBrand-500 p-0.5 shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
+                        <div class="w-full h-full bg-darkBg rounded-[14px] flex items-center justify-center">
+                            <!-- Custom GoDrive Speeding Wheel & G SVG Emblem -->
+                            <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="42" stroke="url(#paint0_linear)" stroke-width="8" stroke-dasharray="210 50"/>
+                                <path d="M50 25C36.1929 25 25 36.1929 25 50C25 63.8071 36.1929 75 50 75C60.2 75 68.9 68.9 72.8 60H50V48H84C84.7 51.3 85 54.6 85 58C85 77.3 69.3 93 50 93C26.3 93 7 73.7 7 50C7 26.3 26.3 7 50 7C62.8 7 74.2 12.6 82 21.5L71 30.5C65.8 24.5 58.3 21 50 21Z" fill="url(#paint1_linear)"/>
+                                <circle cx="50" cy="50" r="10" fill="#10b981"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#3b82f6"/>
+                                        <stop offset="1" stop-color="#10b981"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint1_linear" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#60a5fa"/>
+                                        <stop offset="1" stop-color="#3b82f6"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-gray-100 to-brand-400 bg-clip-text text-transparent">
+                            Go<span class="text-emeraldBrand-400">Drive</span>
+                        </span>
+                        <span class="block text-[10px] tracking-widest text-gray-400 uppercase font-bold">Car Rental Systems</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center gap-8" id="desktopNav">
+                    <a href="#home" onclick="handleNavClick(event, 'home')" class="nav-link nav-item-active text-sm font-medium text-gray-300 hover:text-brand-400 py-1">Home</a>
+                    <a href="#vehicles" onclick="handleNavClick(event, 'vehicles')" class="nav-link text-sm font-medium text-gray-300 hover:text-brand-400 py-1">Vehicles</a>
+                    <a href="#rentals-log" onclick="handleNavClick(event, 'rentals-log')" class="nav-link text-sm font-medium text-gray-300 hover:text-brand-400 py-1 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emeraldBrand-400 animate-pulse"></span> Rentals Log
+                    </a>
+                    <a href="#how-it-works" onclick="handleNavClick(event, 'how-it-works')" class="nav-link text-sm font-medium text-gray-300 hover:text-brand-400 py-1">How It Works</a>
+                    <a href="#services" onclick="handleNavClick(event, 'services')" class="nav-link text-sm font-medium text-gray-300 hover:text-brand-400 py-1">Services</a>
+                </nav>
+
+                <!-- Admin Profile Button & Mobile Toggle -->
+                <div class="flex items-center gap-4">
+                    <button id="adminProfileBtn" onclick="openAdminModal()" class="flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-cardBg border border-cardBorder hover:border-brand-500/50 transition-all duration-200 group">
+                        <div class="relative">
+                            <img id="headerAdminAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" alt="Admin" class="w-8 h-8 rounded-full object-cover border border-emeraldBrand-500">
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emeraldBrand-500 border-2 border-darkBg rounded-full"></span>
+                        </div>
+                        <div class="text-left hidden lg:block pr-1">
+                            <div class="text-xs font-bold text-white group-hover:text-brand-400 transition-colors" id="headerAdminName">Alex Morgan</div>
+                            <div class="text-[10px] text-gray-400">Super Admin</div>
+                        </div>
+                        <i class="fa-solid fa-user-shield text-emeraldBrand-400 text-sm ml-1"></i>
+                    </button>
+
+                    <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-white focus:outline-none p-2 rounded-lg bg-cardBg border border-cardBorder">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobileMenu" class="hidden md:hidden bg-cardBg border-b border-cardBorder px-4 pt-3 pb-6 space-y-3">
+            <a href="#home" onclick="handleNavClick(event, 'home'); toggleMobileMenu();" class="mobile-nav-link block py-2 text-base font-medium text-brand-500">Home</a>
+            <a href="#vehicles" onclick="handleNavClick(event, 'vehicles'); toggleMobileMenu();" class="mobile-nav-link block py-2 text-base font-medium text-gray-300 hover:text-white">Vehicles</a>
+            <a href="#rentals-log" onclick="handleNavClick(event, 'rentals-log'); toggleMobileMenu();" class="mobile-nav-link block py-2 text-base font-medium text-gray-300 hover:text-white">Rentals Log</a>
+            <a href="#how-it-works" onclick="handleNavClick(event, 'how-it-works'); toggleMobileMenu();" class="mobile-nav-link block py-2 text-base font-medium text-gray-300 hover:text-white">How It Works</a>
+            <a href="#services" onclick="handleNavClick(event, 'services'); toggleMobileMenu();" class="mobile-nav-link block py-2 text-base font-medium text-gray-300 hover:text-white">Services</a>
+            <div class="pt-3 border-t border-cardBorder flex items-center justify-between">
+                <span class="text-xs text-gray-400">GoDrive Admin</span>
+                <button onclick="openAdminModal(); toggleMobileMenu();" class="text-xs bg-brand-600 text-white px-3 py-1.5 rounded-lg font-medium">Open Admin Portal</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2000" alt="Luxury Car" class="w-full h-full object-cover object-center opacity-30">
+            <div class="absolute inset-0 bg-gradient-to-b from-darkBg/60 via-darkBg/90 to-darkBg"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto space-y-6">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs sm:text-sm font-semibold tracking-wide">
+                    <i class="fa-solid fa-sparkles text-amber-500"></i> GoDrive Premium Fleet 2026 Collection
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                    Drive Your Passion with <br class="hidden sm:inline">
+                    <span class="bg-gradient-to-r from-brand-400 via-emeraldBrand-400 to-amber-500 bg-clip-text text-transparent">GoDrive Mobility</span>
+                </h1>
+
+                <p class="text-base sm:text-lg text-gray-400 font-normal leading-relaxed max-w-2xl mx-auto">
+                    Rent top-tier executive sedans, track-ready sports cars, and luxury electric SUVs with instant GST tax billing and zero hidden costs.
+                </p>
+            </div>
+
+            <!-- Search Widget -->
+            <div class="mt-12 max-w-5xl mx-auto glass-panel p-6 sm:p-8 rounded-3xl shadow-2xl relative border border-white/10">
+                <form id="heroSearchForm" onsubmit="handleHeroSearch(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-location-dot text-brand-500 mr-1.5"></i> Pick-up Location
+                        </label>
+                        <select id="searchLocation" class="w-full bg-darkBg/80 border border-cardBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+                            <option value="Mumbai Airport (BOM)">Mumbai Airport (BOM)</option>
+                            <option value="Delhi Airport (DEL)">Delhi Airport (DEL)</option>
+                            <option value="Bengaluru Tech Park">Bengaluru Tech Park</option>
+                            <option value="Goa Beach Hub">Goa Beach Hub</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-calendar text-brand-500 mr-1.5"></i> Pick-up Date
+                        </label>
+                        <input type="date" id="searchPickupDate" class="w-full bg-darkBg/80 border border-cardBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-calendar-check text-brand-500 mr-1.5"></i> Drop-off Date
+                        </label>
+                        <input type="date" id="searchReturnDate" class="w-full bg-darkBg/80 border border-cardBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-car text-brand-500 mr-1.5"></i> Category
+                        </label>
+                        <div class="flex gap-2">
+                            <select id="searchCategory" class="w-full bg-darkBg/80 border border-cardBorder rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition-colors">
+                                <option value="All">All Categories</option>
+                                <option value="Luxury">Luxury</option>
+                                <option value="Sports">Sports</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Electric">Electric</option>
+                            </select>
+                            <button type="submit" class="bg-gradient-to-r from-brand-600 to-emeraldBrand-600 hover:from-brand-500 hover:to-emeraldBrand-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-magnifying-glass text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Available Cars Carousel Section -->
+    <section id="vehicles" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div>
+                <span class="text-emeraldBrand-400 text-xs font-bold uppercase tracking-widest block mb-2">Our Premium Fleet</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white">Explore GoDrive Vehicles</h2>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 bg-cardBg/80 p-1.5 rounded-2xl border border-cardBorder">
+                    <button onclick="filterCars('All')" class="category-chip active px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-brand-600 text-white transition-all">All</button>
+                    <button onclick="filterCars('Luxury')" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap text-gray-400 hover:text-white transition-all">Luxury</button>
+                    <button onclick="filterCars('Sports')" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap text-gray-400 hover:text-white transition-all">Sports</button>
+                    <button onclick="filterCars('SUV')" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap text-gray-400 hover:text-white transition-all">SUV</button>
+                    <button onclick="filterCars('Electric')" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap text-gray-400 hover:text-white transition-all">Electric</button>
+                </div>
+
+                <div class="hidden sm:flex items-center gap-2">
+                    <button onclick="scrollCarousel(-1)" class="w-10 h-10 rounded-xl bg-cardBg border border-cardBorder text-gray-300 hover:text-white hover:border-brand-500 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="scrollCarousel(1)" class="w-10 h-10 rounded-xl bg-cardBg border border-cardBorder text-gray-300 hover:text-white hover:border-brand-500 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="carCarousel" class="flex gap-6 overflow-x-auto no-scrollbar carousel-snap py-4 scroll-smooth">
+            <!-- Dynamic Injection -->
+        </div>
+
+        <div id="noResults" class="hidden text-center py-12 glass-panel rounded-3xl">
+            <i class="fa-solid fa-car-tunnel text-4xl text-gray-500 mb-3"></i>
+            <h3 class="text-lg font-bold text-white">No cars match your criteria</h3>
+            <p class="text-sm text-gray-400">Try adjusting your filters or search keywords.</p>
+            <button onclick="filterCars('All')" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-semibold">Reset Filters</button>
+        </div>
+    </section>
+
+    <!-- DATE-WISE LIVE CUSTOMER RENTALS & INVOICE LOG SECTION -->
+    <section id="rentals-log" class="py-16 bg-gradient-to-b from-transparent via-cardBg/60 to-transparent border-y border-cardBorder/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+                <div>
+                    <span class="text-emeraldBrand-400 text-xs font-bold uppercase tracking-widest block mb-1">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Date-Wise Booking & Invoice Registry
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-white">Customer Rentals Log</h2>
+                    <p class="text-xs text-gray-400 mt-1">Live customer booking records with downloadable GoDrive GST tax receipts.</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" id="rentalSearchInput" oninput="filterRentalsLog()" placeholder="Search name, car, or date..." class="w-full bg-darkBg border border-cardBorder rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-500 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Rentals Cards with Invoice Buttons -->
+            <div id="rentalsLogContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamically Populated -->
+            </div>
+
+            <div id="noRentalsMessage" class="hidden text-center py-10 glass-panel rounded-2xl">
+                <i class="fa-solid fa-folder-open text-3xl text-gray-500 mb-2"></i>
+                <p class="text-sm text-gray-400">No rental history found matching your search.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <span class="text-brand-500 text-xs font-bold uppercase tracking-widest">Seamless Mobility</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white mt-1">GoDrive in 3 Easy Steps</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-3xl relative group hover:border-brand-500/40 transition-all">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-600/20 text-brand-500 flex items-center justify-center text-2xl font-bold mb-6 border border-brand-500/30">01</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Select Your Vehicle</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Browse our verified GoDrive fleet of executive sedans, sports coupes, and electric cars.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl relative group hover:border-brand-500/40 transition-all">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-600/20 text-brand-400 flex items-center justify-center text-2xl font-bold mb-6 border border-brand-500/30">02</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Pick Dates & Add-ons</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Customize rental duration, choose GPS, child seats, or full zero-dep insurance protection.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl relative group hover:border-brand-500/40 transition-all">
+                    <div class="w-14 h-14 rounded-2xl bg-emeraldBrand-500/20 text-emeraldBrand-400 flex items-center justify-center text-2xl font-bold mb-6 border border-emeraldBrand-500/30">03</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Get GoDrive Key</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Direct airport terminal pickup or express doorstep vehicle delivery anywhere nationwide.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services / Trust Badges -->
+    <section id="services" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="p-6 rounded-2xl bg-cardBg border border-cardBorder flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emeraldBrand-500/10 text-emeraldBrand-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Full Protection</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Comprehensive insurance</p>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-cardBg border border-cardBorder flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-headset"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">24/7 Roadside Assist</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Instant support anywhere</p>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-cardBg border border-cardBorder flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-coins"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Transparent Billing</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Zero hidden surcharges</p>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-cardBg border border-cardBorder flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-rotate-left"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Free Cancellation</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Up to 24h prior pick-up</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ADMIN PROFILE & FLEET MANAGEMENT MODAL -->
+    <div id="adminModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-8">
+            <div class="p-6 bg-gradient-to-r from-cardBg via-darkBg to-cardBg border-b border-cardBorder flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-500 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">GoDrive Admin Management Portal</h3>
+                        <p class="text-xs text-gray-400">Manage fleet inventory, rental logs, and profile settings</p>
+                    </div>
+                </div>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-white w-9 h-9 rounded-full bg-darkBg border border-cardBorder flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex border-b border-cardBorder bg-darkBg/50 px-6 overflow-x-auto no-scrollbar">
+                <button onclick="switchAdminTab('profile')" id="tab-profile" class="admin-tab text-xs font-bold py-3 px-4 border-b-2 border-brand-500 text-brand-500 transition-all whitespace-nowrap">Profile Overview</button>
+                <button onclick="switchAdminTab('stats')" id="tab-stats" class="admin-tab text-xs font-bold py-3 px-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-all whitespace-nowrap">Manage Fleet & Delete</button>
+                <button onclick="switchAdminTab('rentals')" id="tab-rentals" class="admin-tab text-xs font-bold py-3 px-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-all whitespace-nowrap">Customer Bookings (<span id="adminBookingCount">0</span>)</button>
+                <button onclick="switchAdminTab('addCar')" id="tab-addCar" class="admin-tab text-xs font-bold py-3 px-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-all whitespace-nowrap">+ Add New Vehicle</button>
+            </div>
+
+            <div class="p-6">
+                <!-- Profile -->
+                <div id="adminTabProfile" class="space-y-6">
+                    <div class="flex flex-col md:flex-row gap-6 items-start">
+                        <div class="w-full md:w-1/3 text-center p-6 bg-darkBg/60 rounded-2xl border border-cardBorder">
+                            <div class="relative w-28 h-28 mx-auto mb-4">
+                                <img id="adminProfileImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" class="w-full h-full rounded-full object-cover border-2 border-emeraldBrand-500 shadow-xl" alt="Admin Avatar">
+                                <button onclick="triggerAvatarChange()" class="absolute bottom-0 right-0 bg-brand-600 text-white p-2 rounded-full text-xs shadow-lg hover:bg-brand-500">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+                            </div>
+                            <h4 class="text-base font-bold text-white" id="modalAdminName">Alex Morgan</h4>
+                            <span class="inline-block px-3 py-1 bg-brand-500/10 border border-brand-500/30 text-brand-400 rounded-full text-[10px] font-semibold uppercase tracking-wider mt-1" id="modalAdminRole">Super Admin</span>
+                            <div class="mt-4 pt-4 border-t border-cardBorder text-left space-y-2 text-xs text-gray-400">
+                                <div><span class="text-gray-500">Admin ID:</span> <span class="text-gray-200 font-mono ml-1" id="modalAdminId">GODRIVE-2026-9042</span></div>
+                                <div><span class="text-gray-500">Last Login:</span> <span class="text-gray-200 ml-1">Today, 08:40 PM</span></div>
+                            </div>
+                        </div>
+
+                        <div class="w-full md:w-2/3 space-y-4">
+                            <h4 class="text-sm font-bold text-white uppercase tracking-wider text-brand-500">Edit GoDrive Profile Details</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Full Name</label>
+                                    <input type="text" id="inputAdminName" value="Alex Morgan" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Email Address</label>
+                                    <input type="email" id="inputAdminEmail" value="alex.morgan@godrive.com" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Phone Number</label>
+                                    <input type="text" id="inputAdminPhone" value="+91 98765 43210" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Assigned Division</label>
+                                    <input type="text" value="GoDrive HQ & West Operations" disabled class="w-full bg-darkBg/50 border border-cardBorder rounded-xl px-3 py-2 text-xs text-gray-500 cursor-not-allowed">
+                                </div>
+                            </div>
+                            <div class="pt-4 flex items-center gap-3">
+                                <button onclick="saveAdminProfile()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-brand-500/20">
+                                    Save Profile Changes
+                                </button>
+                                <button onclick="closeAdminModal()" class="px-5 py-2.5 bg-darkBg border border-cardBorder text-gray-300 rounded-xl text-xs font-semibold hover:text-white">
+                                    Back to Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Fleet -->
+                <div id="adminTabStats" class="hidden space-y-6">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-2xl bg-darkBg border border-cardBorder text-center">
+                            <span class="text-2xl font-extrabold text-white" id="statTotalCars">6</span>
+                            <span class="block text-[10px] text-gray-400 uppercase font-semibold mt-1">Total Fleet</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-darkBg border border-cardBorder text-center">
+                            <span class="text-2xl font-extrabold text-emeraldBrand-400" id="statTotalBookings">3</span>
+                            <span class="block text-[10px] text-gray-400 uppercase font-semibold mt-1">Customer Bookings</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-darkBg border border-cardBorder text-center">
+                            <span class="text-2xl font-extrabold text-brand-500" id="statTotalRevenue">₹48,500</span>
+                            <span class="block text-[10px] text-gray-400 uppercase font-semibold mt-1">Log Revenue</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-darkBg border border-cardBorder text-center">
+                            <span class="text-2xl font-extrabold text-amber-500">99.4%</span>
+                            <span class="block text-[10px] text-gray-400 uppercase font-semibold mt-1">Fleet Health</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 rounded-2xl bg-darkBg/60 border border-cardBorder">
+                        <div class="flex items-center justify-between mb-3">
+                            <h5 class="text-xs font-bold text-white uppercase tracking-wider">GoDrive Live Inventory & Removal</h5>
+                            <span class="text-[11px] text-gray-400">Click <i class="fa-solid fa-trash-can text-rose-400 mx-0.5"></i> to delete car</span>
+                        </div>
+                        <div id="adminFleetList" class="space-y-2.5 max-h-60 overflow-y-auto pr-2"></div>
+                    </div>
+                </div>
+
+                <!-- Customer Bookings Table -->
+                <div id="adminTabRentals" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h5 class="text-xs font-bold text-white uppercase tracking-wider">Customer Rental Requests & Receipts</h5>
+                        <span class="text-xs text-gray-400">Sorted by Date (Latest First)</span>
+                    </div>
+                    <div id="adminRentalsTable" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Add New Car -->
+                <div id="adminTabAddCar" class="hidden">
+                    <form onsubmit="handleAddNewCar(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Vehicle Name & Model</label>
+                                <input type="text" id="newCarName" placeholder="e.g. Audi RS e-tron GT" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Category</label>
+                                <select id="newCarCategory" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                    <option value="Luxury">Luxury</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Electric">Electric</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Price per Day (₹)</label>
+                                <input type="number" id="newCarPrice" placeholder="6500" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Image URL</label>
+                                <input type="url" id="newCarImage" placeholder="https://images.unsplash.com/..." required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Seats / Transmission</label>
+                                <input type="text" id="newCarSpecs" placeholder="5 Seats • Automatic" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">Rating</label>
+                                <input type="number" step="0.1" id="newCarRating" value="4.9" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-brand-500/20">
+                            + Save & Publish Vehicle to GoDrive Inventory
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-darkBg/90 border-t border-cardBorder flex justify-between items-center">
+                <button onclick="handleAdminLogout()" class="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout Admin Session
+                </button>
+                <button onclick="closeAdminModal()" class="text-xs font-semibold text-gray-400 hover:text-white">
+                    Close Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAR DETAILS MODAL -->
+    <div id="carDetailsModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-3xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-8" id="detailsModalContent"></div>
+    </div>
+
+    <!-- BOOKING FLOW MODAL -->
+    <div id="bookingModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-8">
+            <div class="p-6 border-b border-cardBorder flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emeraldBrand-500/20 text-emeraldBrand-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">GoDrive Vehicle Reservation</h3>
+                        <p class="text-xs text-gray-400" id="bookingModalCarName">Vehicle Reservation</p>
+                    </div>
+                </div>
+                <button onclick="closeBookingModal()" class="text-gray-400 hover:text-white w-9 h-9 rounded-full bg-darkBg border border-cardBorder flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleFinalBookingSubmit(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Pick-up Date</label>
+                        <input type="date" id="bookStartDate" required onchange="updateBookingCalculation()" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Drop-off Date</label>
+                        <input type="date" id="bookEndDate" required onchange="updateBookingCalculation()" class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <label class="block text-xs font-semibold text-gray-300">Select Extra Add-ons</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <label class="p-3 rounded-xl bg-darkBg/60 border border-cardBorder flex items-center gap-2 cursor-pointer hover:border-brand-500/50">
+                            <input type="checkbox" id="addonGps" onchange="updateBookingCalculation()" class="rounded text-brand-600 focus:ring-0">
+                            <div>
+                                <span class="block text-xs font-semibold text-white">GPS Nav</span>
+                                <span class="text-[10px] text-gray-400">₹300/day</span>
+                            </div>
+                        </label>
+                        <label class="p-3 rounded-xl bg-darkBg/60 border border-cardBorder flex items-center gap-2 cursor-pointer hover:border-brand-500/50">
+                            <input type="checkbox" id="addonChildSeat" onchange="updateBookingCalculation()" class="rounded text-brand-600 focus:ring-0">
+                            <div>
+                                <span class="block text-xs font-semibold text-white">Child Seat</span>
+                                <span class="text-[10px] text-gray-400">₹250/day</span>
+                            </div>
+                        </label>
+                        <label class="p-3 rounded-xl bg-darkBg/60 border border-cardBorder flex items-center gap-2 cursor-pointer hover:border-brand-500/50">
+                            <input type="checkbox" id="addonInsurance" onchange="updateBookingCalculation()" class="rounded text-brand-600 focus:ring-0">
+                            <div>
+                                <span class="block text-xs font-semibold text-white">Zero Dep</span>
+                                <span class="text-[10px] text-gray-400">₹800/day</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <label class="block text-xs font-semibold text-gray-300">Customer Information</label>
+                    <input type="text" id="custFullName" placeholder="Full Name (e.g., K. Rajesh)" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="email" id="custEmail" placeholder="Email Address" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                        <input type="tel" id="custPhone" placeholder="Mobile Number" required class="w-full bg-darkBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex justify-between items-center mt-4">
+                    <div>
+                        <span class="text-xs text-gray-400 block">Total Fee (<span id="calcDays">1</span> Days)</span>
+                        <span class="text-2xl font-extrabold text-white" id="calcTotalPrice">₹0</span>
+                    </div>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-emeraldBrand-500 to-teal-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-emeraldBrand-500/25 hover:opacity-95 transition-all">
+                        Confirm & Save Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GODRIVE PRINTABLE TAX INVOICE MODAL -->
+    <div id="invoiceModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden my-8 printable-card">
+            
+            <!-- Invoice Action Bar (Hidden on Print) -->
+            <div class="p-4 bg-darkBg/90 border-b border-cardBorder flex items-center justify-between no-print">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-emeraldBrand-400 text-base"></i>
+                    <span class="text-xs font-bold text-white uppercase tracking-wider">Official GoDrive Tax Receipt</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="px-3 py-1.5 bg-emeraldBrand-600 hover:bg-emeraldBrand-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-print"></i> Print / Save PDF
+                    </button>
+                    <button onclick="closeInvoiceModal()" class="w-8 h-8 text-gray-400 hover:text-white rounded-full bg-cardBg border border-cardBorder flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Invoice Content Container -->
+            <div class="p-8 space-y-6 text-gray-200" id="invoiceBodyContainer">
+                <!-- Dynamically Injected Invoice -->
+            </div>
+
+            <!-- Invoice Footer -->
+            <div class="p-4 bg-darkBg/90 border-t border-cardBorder text-center no-print">
+                <p class="text-[11px] text-gray-400">This is an authentic computer-generated tax invoice issued by GoDrive Rental Systems Pvt. Ltd.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 hidden">
+        <div class="toast-animate glass-panel px-6 py-3 rounded-full border border-brand-500/40 shadow-2xl flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emeraldBrand-400 text-lg" id="toastIcon"></i>
+            <span class="text-xs font-bold text-white" id="toastMessage">Action completed successfully!</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-darkBg border-t border-cardBorder pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-cardBorder">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emeraldBrand-500 flex items-center justify-center p-1">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 100 100" fill="currentColor">
+                                <circle cx="50" cy="50" r="40" stroke="white" stroke-width="8" fill="none"/>
+                                <path d="M50 25C36.2 25 25 36.2 25 50C25 63.8 36.2 75 50 75C60.2 75 68.9 68.9 72.8 60H50V48H84C85 58 50 93 50 93C26.3 93 7 73.7 7 50C7 26.3 26.3 7 50 7Z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-black text-white">Go<span class="text-emeraldBrand-400">Drive</span></span>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        India's premier self-drive and executive vehicle rental platform. Delivering precision-engineered cars with transparent GST pricing.
+                    </p>
+                </div>
+
+                <div>
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Quick Links</h5>
+                    <ul class="space-y-2.5 text-xs text-gray-400">
+                        <li><a href="#vehicles" onclick="handleNavClick(event, 'vehicles')" class="hover:text-white transition-colors">Browse Fleet</a></li>
+                        <li><a href="#rentals-log" onclick="handleNavClick(event, 'rentals-log')" class="hover:text-white transition-colors">Rentals Log & Invoices</a></li>
+                        <li><a href="#how-it-works" onclick="handleNavClick(event, 'how-it-works')" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#adminModal" onclick="openAdminModal(); return false;" class="text-brand-500 hover:text-brand-400 font-semibold">Admin Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider mb-4">GoDrive Hubs</h5>
+                    <ul class="space-y-2.5 text-xs text-gray-400">
+                        <li>Mumbai International Airport (T2)</li>
+                        <li>Delhi NCR Chhatrapati Terminal</li>
+                        <li>Bengaluru Indiranagar Hub</li>
+                        <li>Goa Dabolim & MOPA Hubs</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Subscribe to Offers</h5>
+                    <p class="text-xs text-gray-400 mb-3">Get weekend getaway discounts and GoDrive fleet updates directly in your inbox.</p>
+                    <form onsubmit="handleNewsletter(event)" class="space-y-2">
+                        <input type="email" placeholder="Enter your email" required class="w-full bg-cardBg border border-cardBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                        <button type="submit" class="w-full py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs transition-all">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
+                <p>&copy; 2026 GoDrive Rental Systems Pvt. Ltd. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-gray-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-400">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Application Scripts -->
+    <script>
+        // GODRIVE VEHICLES DATA & RENTAL HISTORY WITH TAX BREAKDOWN
+        let carsData = [
+            {
+                id: 1,
+                name: "BMW 3 Series Gran Limousine",
+                category: "Luxury",
+                tag: "Featured",
+                price: 4500,
+                rating: 4.8,
+                reviews: 124,
+                seats: "5 Seats",
+                fuel: "Petrol / Mild Hybrid",
+                transmission: "Automatic",
+                image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800",
+                description: "Experience GoDrive luxury with extended legroom, BMW Live Cockpit Professional, and panoramic glass sunroof."
+            },
+            {
+                id: 2,
+                name: "Porsche 911 Carrera S",
+                category: "Sports",
+                tag: "Performance",
+                price: 18500,
+                rating: 4.9,
+                reviews: 98,
+                seats: "2 Seats",
+                fuel: "Twin-Turbo Flat-6",
+                transmission: "8-Speed PDK",
+                image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=800",
+                description: "The iconic GoDrive rear-engine sports car. Delivers 443 hp, 0-100 km/h in 3.7 seconds for pure driving thrill."
+            },
+            {
+                id: 3,
+                name: "Mercedes-Benz G 63 AMG",
+                category: "SUV",
+                tag: "V8 Biturbo",
+                price: 22000,
+                rating: 5.0,
+                reviews: 210,
+                seats: "5 Seats",
+                fuel: "4.0L V8 Petrol",
+                transmission: "AMG SPEEDSHIFT",
+                image: "https://images.unsplash.com/photo-1520050206274-a1ae44613e6d?auto=format&fit=crop&q=80&w=800",
+                description: "Unrivaled off-road power combined with GoDrive premium leather interiors and twin-turbo V8 roar."
+            },
+            {
+                id: 4,
+                name: "Tesla Model S Plaid",
+                category: "Electric",
+                tag: "EV Tri-Motor",
+                price: 12000,
+                rating: 4.9,
+                reviews: 156,
+                seats: "5 Seats",
+                fuel: "600km Range",
+                transmission: "Single Speed EV",
+                image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800",
+                description: "The peak of EV acceleration in our GoDrive fleet. 1,020 hp with full self-driving capability and Supercharging."
+            },
+            {
+                id: 5,
+                name: "Audi Q8 Sportback",
+                category: "SUV",
+                tag: "Quattro",
+                price: 9500,
+                rating: 4.7,
+                reviews: 84,
+                seats: "5 Seats",
+                fuel: "Mild Hybrid Petrol",
+                transmission: "8-Speed Tiptronic",
+                image: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=800",
+                description: "Coupe styling meets versatile SUV performance in the GoDrive catalog with HD Matrix LED headlights."
+            },
+            {
+                id: 6,
+                name: "Range Rover Velar",
+                category: "Luxury",
+                tag: "AWD Prestige",
+                price: 11000,
+                rating: 4.8,
+                reviews: 112,
+                seats: "5 Seats",
+                fuel: "2.0L Turbo",
+                transmission: "Automatic",
+                image: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&q=80&w=800",
+                description: "Avant-garde luxury SUV design with flush door handles and supreme all-terrain capability."
+            }
+        ];
+
+        // Customer Rentals Log Data with Tax Breakdown for GoDrive
+        let customerRentalsLog = [
+            {
+                id: "GD-9841",
+                invoiceNo: "INV-2026-9841",
+                customerName: "Vikram Sharma",
+                email: "vikram.sharma@gmail.com",
+                phone: "+91 98450 12345",
+                carName: "BMW 3 Series Gran Limousine",
+                carImage: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=300",
+                startDate: "2026-09-25",
+                endDate: "2026-09-28",
+                days: 3,
+                ratePerDay: 4500,
+                subtotal: 13500,
+                addons: "GPS Navigation",
+                addonFee: 900,
+                gstTax: 2592,
+                totalPrice: 16992,
+                bookingTimestamp: "Sep 24, 2026 • 07:15 PM",
+                status: "Confirmed"
+            },
+            {
+                id: "GD-9840",
+                invoiceNo: "INV-2026-9840",
+                customerName: "Priya Sundaram",
+                email: "priya.s@techcorp.in",
+                phone: "+91 97112 88900",
+                carName: "Tesla Model S Plaid",
+                carImage: "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=300",
+                startDate: "2026-09-24",
+                endDate: "2026-09-26",
+                days: 2,
+                ratePerDay: 12000,
+                subtotal: 24000,
+                addons: "Zero Dep Insurance + Child Seat",
+                addonFee: 2100,
+                gstTax: 4698,
+                totalPrice: 30798,
+                bookingTimestamp: "Sep 24, 2026 • 02:30 PM",
+                status: "Active"
+            },
+            {
+                id: "GD-9839",
+                invoiceNo: "INV-2026-9839",
+                customerName: "Arjun Mehta",
+                email: "mehta.arjun@outlook.com",
+                phone: "+91 99201 44321",
+                carName: "Porsche 911 Carrera S",
+                carImage: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=300",
+                startDate: "2026-09-20",
+                endDate: "2026-09-21",
+                days: 1,
+                ratePerDay: 18500,
+                subtotal: 18500,
+                addons: "None",
+                addonFee: 0,
+                gstTax: 3330,
+                totalPrice: 21830,
+                bookingTimestamp: "Sep 20, 2026 • 11:00 AM",
+                status: "Completed"
+            }
+        ];
+
+        let selectedCarForBooking = null;
+        let currentFilterCategory = "All";
+        let isManualNavClick = false;
+
+        window.onload = function() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 2);
+
+            document.getElementById('searchPickupDate').valueAsDate = today;
+            document.getElementById('searchReturnDate').valueAsDate = tomorrow;
+            document.getElementById('bookStartDate').valueAsDate = today;
+            document.getElementById('bookEndDate').valueAsDate = tomorrow;
+
+            renderCarCards(carsData);
+            renderRentalsLog();
+            updateAdminFleetList();
+            setupScrollSpy();
+        };
+
+        function handleNavClick(event, targetId) {
+            if (event) event.preventDefault();
+            isManualNavClick = true;
+            applyActiveBlueHighlight(targetId);
+
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                const headerOffset = 80;
+                const elementPosition = targetSection.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+            }
+
+            setTimeout(() => { isManualNavClick = false; }, 800);
+        }
+
+        function applyActiveBlueHighlight(targetId) {
+            const desktopLinks = document.querySelectorAll('#desktopNav .nav-link');
+            desktopLinks.forEach(link => {
+                const href = link.getAttribute('href').replace('#', '');
+                if (href === targetId) {
+                    link.classList.add('nav-item-active', 'text-brand-500');
+                    link.classList.remove('text-gray-300');
+                } else {
+                    link.classList.remove('nav-item-active', 'text-brand-500');
+                    link.classList.add('text-gray-300');
+                }
+            });
+
+            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+            mobileLinks.forEach(link => {
+                const href = link.getAttribute('href').replace('#', '');
+                if (href === targetId) {
+                    link.classList.add('text-brand-500');
+                    link.classList.remove('text-gray-300');
+                } else {
+                    link.classList.remove('text-brand-500');
+                    link.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        function setupScrollSpy() {
+            let ticking = false;
+            const sections = document.querySelectorAll('section[id]');
+
+            window.addEventListener('scroll', () => {
+                if (isManualNavClick) return;
+
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        let currentSectionId = '';
+                        const scrollPosition = window.scrollY + 150;
+
+                        sections.forEach(section => {
+                            const top = section.offsetTop;
+                            const height = section.offsetHeight;
+                            if (scrollPosition >= top && scrollPosition < top + height) {
+                                currentSectionId = section.getAttribute('id');
+                            }
+                        });
+
+                        if (currentSectionId) {
+                            applyActiveBlueHighlight(currentSectionId);
+                        }
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+        }
+
+        function renderCarCards(cars) {
+            const container = document.getElementById('carCarousel');
+            const noResults = document.getElementById('noResults');
+
+            if (!cars || cars.length === 0) {
+                container.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            container.innerHTML = cars.map(car => `
+                <div class="carousel-item shrink-0 w-[290px] sm:w-[340px] car-card rounded-3xl bg-cardBg border border-cardBorder overflow-hidden flex flex-col justify-between">
+                    <div class="relative h-48 overflow-hidden bg-darkBg">
+                        <img src="${car.image}" alt="${car.name}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" onerror="this.src='https://placehold.co/600x400/1e293b/ffffff?text=${encodeURIComponent(car.name)}'">
+                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold bg-brand-600/90 text-white backdrop-blur-md shadow-md uppercase tracking-wider">
+                            ${car.tag}
+                        </span>
+                        <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-darkBg/80 backdrop-blur-md border border-white/10 text-xs font-semibold text-amber-500 flex items-center gap-1">
+                            <i class="fa-solid fa-star text-[10px]"></i> ${car.rating} <span class="text-gray-400 text-[10px]">(${car.reviews})</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="text-[11px] font-bold text-emeraldBrand-400 uppercase tracking-widest mb-1">${car.category}</div>
+                            <h3 class="text-base font-bold text-white line-clamp-1 mb-3" title="${car.name}">${car.name}</h3>
+                            
+                            <div class="grid grid-cols-3 gap-2 py-3 border-y border-cardBorder/60 text-[11px] text-gray-400 mb-4">
+                                <div class="flex items-center gap-1.5"><i class="fa-solid fa-users text-brand-500"></i> ${car.seats}</div>
+                                <div class="flex items-center gap-1.5"><i class="fa-solid fa-gas-pump text-brand-500"></i> ${car.fuel.split(' ')[0]}</div>
+                                <div class="flex items-center gap-1.5"><i class="fa-solid fa-gear text-brand-500"></i> ${car.transmission.split(' ')[0]}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline justify-between mb-4">
+                                <div>
+                                    <span class="text-xs text-gray-400">Daily Rate</span>
+                                    <div class="text-xl font-extrabold text-white">₹${car.price.toLocaleString('en-IN')} <span class="text-xs font-normal text-gray-400">/ Day</span></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="openCarDetails(${car.id})" class="w-full py-2.5 px-3 rounded-xl bg-darkBg border border-cardBorder text-gray-300 hover:text-white hover:border-brand-500 text-xs font-bold transition-all text-center">
+                                    Details
+                                </button>
+                                <button onclick="openBookingModal(${car.id})" class="w-full py-2.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition-all shadow-lg shadow-brand-500/20 text-center">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCars(category) {
+            currentFilterCategory = category;
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                if(chip.textContent.trim() === category) {
+                    chip.className = 'category-chip active px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-brand-600 text-white transition-all';
+                } else {
+                    chip.className = 'category-chip px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap text-gray-400 hover:text-white transition-all';
+                }
+            });
+
+            if(category === 'All') {
+                renderCarCards(carsData);
+            } else {
+                const filtered = carsData.filter(car => car.category.toLowerCase() === category.toLowerCase());
+                renderCarCards(filtered);
+            }
+        }
+
+        function handleHeroSearch(e) {
+            e.preventDefault();
+            const category = document.getElementById('searchCategory').value;
+            filterCars(category);
+            handleNavClick(null, 'vehicles');
+            showToast(`Filtered GoDrive fleet for: ${category}`);
+        }
+
+        function scrollCarousel(direction) {
+            const container = document.getElementById('carCarousel');
+            container.scrollBy({ left: direction * 350, behavior: 'smooth' });
+        }
+
+        function renderRentalsLog(filteredList = null) {
+            const container = document.getElementById('rentalsLogContainer');
+            const adminTable = document.getElementById('adminRentalsTable');
+            const noMsg = document.getElementById('noRentalsMessage');
+            
+            const listToRender = filteredList || customerRentalsLog;
+
+            document.getElementById('adminBookingCount').textContent = customerRentalsLog.length;
+            document.getElementById('statTotalBookings').textContent = customerRentalsLog.length;
+            
+            const totalRev = customerRentalsLog.reduce((acc, curr) => acc + curr.totalPrice, 0);
+            document.getElementById('statTotalRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+
+            if (listToRender.length === 0) {
+                container.innerHTML = '';
+                noMsg.classList.remove('hidden');
+            } else {
+                noMsg.classList.add('hidden');
+                
+                // Public Log Cards View
+                container.innerHTML = listToRender.map(item => `
+                    <div class="glass-panel p-5 rounded-2xl border border-cardBorder hover:border-brand-500/40 transition-all flex flex-col justify-between space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-emeraldBrand-600 flex items-center justify-center font-bold text-white text-sm">
+                                    ${item.customerName.charAt(0)}
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">${item.customerName}</h4>
+                                    <span class="text-[10px] text-gray-400 block"><i class="fa-solid fa-phone text-brand-500 mr-1"></i> ${item.phone}</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                item.status === 'Active' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' :
+                                item.status === 'Confirmed' ? 'bg-emeraldBrand-500/10 text-emeraldBrand-400 border border-emeraldBrand-500/30' :
+                                'bg-gray-500/10 text-gray-400 border border-gray-500/30'
+                            }">
+                                ${item.status}
+                            </span>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-darkBg/80 border border-cardBorder flex items-center gap-3">
+                            <img src="${item.carImage}" class="w-14 h-11 rounded-lg object-cover" alt="Rented Car" onerror="this.src='https://placehold.co/150x100/1e293b/ffffff?text=Car'">
+                            <div>
+                                <h5 class="text-xs font-bold text-white line-clamp-1">${item.carName}</h5>
+                                <div class="text-[10px] text-brand-400 mt-0.5">
+                                    <i class="fa-solid fa-calendar-days mr-1"></i> ${item.startDate} &rarr; ${item.endDate} (${item.days} Days)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-cardBorder/60 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Total Tax Paid</span>
+                                <span class="font-extrabold text-white text-base">₹${item.totalPrice.toLocaleString('en-IN')}</span>
+                            </div>
+                            <button onclick="openInvoiceModal('${item.id}')" class="px-3 py-1.5 rounded-xl bg-brand-600/20 hover:bg-brand-600 text-brand-400 hover:text-white border border-brand-500/30 text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-invoice"></i> Invoice
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Admin Table View
+            adminTable.innerHTML = customerRentalsLog.map(item => `
+                <div class="p-3 rounded-xl bg-darkBg border border-cardBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.carImage}" class="w-10 h-10 rounded-lg object-cover" alt="Car" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Car'">
+                        <div>
+                            <div class="font-bold text-white">${item.customerName} <span class="text-gray-400 font-normal">(${item.phone})</span></div>
+                            <div class="text-[10px] text-brand-400">${item.carName} • ${item.startDate} to ${item.endDate}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-end gap-3">
+                        <span class="font-mono font-bold text-emeraldBrand-400">₹${item.totalPrice.toLocaleString('en-IN')}</span>
+                        <button onclick="openInvoiceModal('${item.id}')" class="px-2.5 py-1 rounded-lg bg-emeraldBrand-500/10 hover:bg-emeraldBrand-500 text-emeraldBrand-400 hover:text-white border border-emeraldBrand-500/30 text-[11px] font-bold transition-all">
+                            View Receipt
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterRentalsLog() {
+            const query = document.getElementById('rentalSearchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderRentalsLog();
+                return;
+            }
+
+            const filtered = customerRentalsLog.filter(item => 
+                item.customerName.toLowerCase().includes(query) ||
+                item.carName.toLowerCase().includes(query) ||
+                item.startDate.includes(query) ||
+                item.invoiceNo.toLowerCase().includes(query)
+            );
+
+            renderRentalsLog(filtered);
+        }
+
+        // GODRIVE OFFICIAL TAX INVOICE MODAL
+        function openInvoiceModal(resId) {
+            const rental = customerRentalsLog.find(r => r.id === resId);
+            if (!rental) return;
+
+            const container = document.getElementById('invoiceBodyContainer');
+            container.innerHTML = `
+                <!-- Invoice Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start border-b border-cardBorder pb-6 gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-emeraldBrand-500 flex items-center justify-center text-white font-black text-sm">GD</div>
+                            <span class="text-2xl font-black text-white printable-text-dark">Go<span class="text-emeraldBrand-400">Drive</span></span>
+                        </div>
+                        <p class="text-xs text-gray-400 printable-text-gray">GoDrive Rental Systems India Pvt. Ltd.</p>
+                        <p class="text-[11px] text-gray-500 printable-text-gray">GSTIN: 27GDRIVE000A1Z5 • Terminal Hub: Mumbai T2</p>
+                    </div>
+                    <div class="text-left sm:text-right">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-brand-500/20 text-brand-400 border border-brand-500/30">Tax Invoice</span>
+                        <h4 class="text-lg font-bold font-mono text-white mt-1 printable-text-dark">${rental.invoiceNo}</h4>
+                        <p class="text-xs text-gray-400 printable-text-gray">Issued: ${rental.bookingTimestamp}</p>
+                    </div>
+                </div>
+
+                <!-- Customer & Rental Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 rounded-2xl bg-darkBg/60 border border-cardBorder printable-card">
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-500 uppercase tracking-wider block mb-1">Billed To Customer</span>
+                        <h5 class="text-sm font-bold text-white printable-text-dark">${rental.customerName}</h5>
+                        <p class="text-xs text-gray-400 printable-text-gray"><i class="fa-solid fa-envelope mr-1"></i> ${rental.email}</p>
+                        <p class="text-xs text-gray-400 printable-text-gray"><i class="fa-solid fa-phone mr-1"></i> ${rental.phone}</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-500 uppercase tracking-wider block mb-1">Vehicle & Duration</span>
+                        <h5 class="text-sm font-bold text-white printable-text-dark">${rental.carName}</h5>
+                        <p class="text-xs text-gray-400 printable-text-gray"><i class="fa-solid fa-calendar mr-1"></i> ${rental.startDate} to ${rental.endDate}</p>
+                        <p class="text-xs text-gray-400 printable-text-gray"><i class="fa-solid fa-clock mr-1"></i> Total Days: ${rental.days} Days</p>
+                    </div>
+                </div>
+
+                <!-- Invoice Line Items Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-cardBorder text-gray-400 uppercase text-[10px] tracking-wider">
+                                <th class="py-2">Description</th>
+                                <th class="py-2 text-center">Qty / Days</th>
+                                <th class="py-2 text-right">Daily Rate</th>
+                                <th class="py-2 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-cardBorder/60">
+                            <tr>
+                                <td class="py-3 font-semibold text-white printable-text-dark">${rental.carName} GoDrive Fee</td>
+                                <td class="py-3 text-center text-gray-300 printable-text-gray">${rental.days}</td>
+                                <td class="py-3 text-right text-gray-300 printable-text-gray">₹${rental.ratePerDay.toLocaleString('en-IN')}</td>
+                                <td class="py-3 text-right font-bold text-white printable-text-dark">₹${rental.subtotal.toLocaleString('en-IN')}</td>
+                            </tr>
+                            ${rental.addonFee > 0 ? `
+                            <tr>
+                                <td class="py-3 font-semibold text-white printable-text-dark">Add-ons (${rental.addons})</td>
+                                <td class="py-3 text-center text-gray-300 printable-text-gray">${rental.days}</td>
+                                <td class="py-3 text-right text-gray-300 printable-text-gray">-</td>
+                                <td class="py-3 text-right font-bold text-white printable-text-dark">₹${rental.addonFee.toLocaleString('en-IN')}</td>
+                            </tr>` : ''}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tax Calculation Breakdown -->
+                <div class="pt-4 border-t border-cardBorder flex flex-col items-end space-y-1.5 text-xs">
+                    <div class="flex justify-between w-full sm:w-64 text-gray-400 printable-text-gray">
+                        <span>Net Subtotal:</span>
+                        <span class="font-bold text-white printable-text-dark">₹${(rental.subtotal + rental.addonFee).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div class="flex justify-between w-full sm:w-64 text-gray-400 printable-text-gray">
+                        <span>GST Tax (18%):</span>
+                        <span class="font-bold text-white printable-text-dark">₹${rental.gstTax.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div class="flex justify-between w-full sm:w-64 pt-2 border-t border-cardBorder text-base font-extrabold text-white printable-text-dark">
+                        <span>Grand Total Paid:</span>
+                        <span class="text-emeraldBrand-400">₹${rental.totalPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('invoiceModal').classList.remove('hidden');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.add('hidden');
+        }
+
+        function deleteCar(carId) {
+            const carIndex = carsData.findIndex(c => c.id === carId);
+            if (carIndex === -1) return;
+
+            const carName = carsData[carIndex].name;
+            if (confirm(`Are you sure you want to remove "${carName}" from the GoDrive fleet?`)) {
+                carsData.splice(carIndex, 1);
+                filterCars(currentFilterCategory);
+                updateAdminFleetList();
+                showToast(`Removed "${carName}" from GoDrive inventory.`);
+            }
+        }
+
+        function updateAdminFleetList() {
+            const container = document.getElementById('adminFleetList');
+            document.getElementById('statTotalCars').textContent = carsData.length;
+
+            if (carsData.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No vehicles available. Click "+ Add New Vehicle" tab to add one.</p>`;
+                return;
+            }
+
+            container.innerHTML = carsData.map(car => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-darkBg border border-cardBorder text-xs hover:border-cardBorder/80 transition-all">
+                    <div class="flex items-center gap-3">
+                        <img src="${car.image}" class="w-10 h-10 rounded-lg object-cover" alt="Car" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Car'">
+                        <div>
+                            <span class="font-bold text-white block line-clamp-1">${car.name}</span>
+                            <span class="text-[10px] text-gray-400">${car.category} • ₹${car.price.toLocaleString('en-IN')}/day</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="deleteCar(${car.id})" title="Remove Car" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-semibold transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">Delete</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleAddNewCar(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCarName').value;
+            const category = document.getElementById('newCarCategory').value;
+            const price = parseFloat(document.getElementById('newCarPrice').value);
+            const image = document.getElementById('newCarImage').value;
+            const specs = document.getElementById('newCarSpecs').value;
+            const rating = parseFloat(document.getElementById('newCarRating').value) || 4.9;
+
+            const newCarObj = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                tag: "GoDrive New",
+                price: price,
+                rating: rating,
+                reviews: 1,
+                seats: specs.split('•')[0] || "5 Seats",
+                fuel: "Hybrid",
+                transmission: specs.split('•')[1] || "Automatic",
+                image: image,
+                description: "Newly added GoDrive vehicle ready for instant airport and city reservation."
+            };
+
+            carsData.unshift(newCarObj);
+            filterCars(currentFilterCategory);
+            updateAdminFleetList();
+            
+            e.target.reset();
+            switchAdminTab('stats');
+            showToast(`Added "${name}" to GoDrive inventory!`);
+        }
+
+        function openCarDetails(carId) {
+            const car = carsData.find(c => c.id === carId);
+            if(!car) return;
+
+            const modalContent = document.getElementById('detailsModalContent');
+            modalContent.innerHTML = `
+                <div class="relative h-64 sm:h-80 overflow-hidden bg-darkBg">
+                    <img src="${car.image}" class="w-full h-full object-cover" alt="${car.name}">
+                    <button onclick="closeCarDetailsModal()" class="absolute top-4 right-4 text-white w-9 h-9 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center hover:bg-black">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div class="absolute bottom-4 left-4 sm:left-6">
+                        <span class="px-3 py-1 bg-brand-600 text-white rounded-full text-xs font-bold uppercase tracking-wider">${car.category}</span>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white mt-2">${car.name}</h2>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-brand-500 uppercase tracking-wider mb-2">GoDrive Vehicle Specs</h4>
+                        <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">${car.description}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-darkBg/80 border border-cardBorder">
+                        <div>
+                            <span class="text-[10px] text-gray-500 uppercase font-semibold">Capacity</span>
+                            <div class="text-xs font-bold text-white mt-0.5"><i class="fa-solid fa-user text-brand-500 mr-1"></i> ${car.seats}</div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-500 uppercase font-semibold">Engine / Fuel</span>
+                            <div class="text-xs font-bold text-white mt-0.5"><i class="fa-solid fa-gas-pump text-brand-500 mr-1"></i> ${car.fuel}</div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-500 uppercase font-semibold">Transmission</span>
+                            <div class="text-xs font-bold text-white mt-0.5"><i class="fa-solid fa-gear text-brand-500 mr-1"></i> ${car.transmission}</div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-gray-500 uppercase font-semibold">Rating</span>
+                            <div class="text-xs font-bold text-amber-500 mt-0.5"><i class="fa-solid fa-star mr-1"></i> ${car.rating} / 5.0</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-cardBorder flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 block">Daily Rate</span>
+                            <span class="text-2xl font-extrabold text-white">₹${car.price.toLocaleString('en-IN')} <span class="text-xs text-gray-400 font-normal">/ day</span></span>
+                        </div>
+                        <button onclick="closeCarDetailsModal(); openBookingModal(${car.id});" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-500/20">
+                            Proceed to Reserve
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('carDetailsModal').classList.remove('hidden');
+        }
+
+        function closeCarDetailsModal() {
+            document.getElementById('carDetailsModal').classList.add('hidden');
+        }
+
+        function openBookingModal(carId) {
+            selectedCarForBooking = carsData.find(c => c.id === carId);
+            if(!selectedCarForBooking) return;
+
+            document.getElementById('bookingModalCarName').textContent = `Reserving: ${selectedCarForBooking.name}`;
+            document.getElementById('bookingModal').classList.remove('hidden');
+            updateBookingCalculation();
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+        }
+
+        function updateBookingCalculation() {
+            if(!selectedCarForBooking) return;
+
+            const startDate = new Date(document.getElementById('bookStartDate').value);
+            const endDate = new Date(document.getElementById('bookEndDate').value);
+
+            let diffDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            if (isNaN(diffDays) || diffDays <= 0) diffDays = 1;
+
+            let basePrice = selectedCarForBooking.price * diffDays;
+            
+            let addonFee = 0;
+            let selectedAddonNames = [];
+            if(document.getElementById('addonGps').checked) { addonFee += 300 * diffDays; selectedAddonNames.push("GPS Nav"); }
+            if(document.getElementById('addonChildSeat').checked) { addonFee += 250 * diffDays; selectedAddonNames.push("Child Seat"); }
+            if(document.getElementById('addonInsurance').checked) { addonFee += 800 * diffDays; selectedAddonNames.push("Zero Dep"); }
+
+            let subtotal = basePrice + addonFee;
+            let gstTax = Math.round(subtotal * 0.18);
+            let grandTotal = subtotal + gstTax;
+
+            document.getElementById('calcDays').textContent = diffDays;
+            document.getElementById('calcTotalPrice').textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
+            return { diffDays, basePrice, addonFee, gstTax, grandTotal, addonStr: selectedAddonNames.join(' + ') || 'None' };
+        }
+
+        function handleFinalBookingSubmit(e) {
+            e.preventDefault();
+            const custName = document.getElementById('custFullName').value;
+            const custEmail = document.getElementById('custEmail').value;
+            const custPhone = document.getElementById('custPhone').value;
+            const startDate = document.getElementById('bookStartDate').value;
+            const endDate = document.getElementById('bookEndDate').value;
+
+            const calc = updateBookingCalculation();
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+
+            const now = new Date();
+            const timestamp = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            const newBookingRecord = {
+                id: `GD-${randomNum}`,
+                invoiceNo: `INV-2026-${randomNum}`,
+                customerName: custName,
+                email: custEmail,
+                phone: custPhone,
+                carName: selectedCarForBooking.name,
+                carImage: selectedCarForBooking.image,
+                startDate: startDate,
+                endDate: endDate,
+                days: calc.diffDays,
+                ratePerDay: selectedCarForBooking.price,
+                subtotal: calc.basePrice,
+                addons: calc.addonStr,
+                addonFee: calc.addonFee,
+                gstTax: calc.gstTax,
+                totalPrice: calc.grandTotal,
+                bookingTimestamp: timestamp,
+                status: "Confirmed"
+            };
+
+            customerRentalsLog.unshift(newBookingRecord);
+            renderRentalsLog();
+
+            closeBookingModal();
+            e.target.reset();
+
+            handleNavClick(null, 'rentals-log');
+            showToast(`GoDrive Tax Invoice generated for ${custName}!`);
+        }
+
+        // ADMIN MODAL TABS & UTILS
+        function switchAdminTab(tabName) {
+            const tabs = ['profile', 'stats', 'rentals', 'addCar'];
+            tabs.forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const tabContent = document.getElementById(`adminTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                
+                if (t === tabName) {
+                    tabBtn.className = 'admin-tab text-xs font-bold py-3 px-4 border-b-2 border-brand-500 text-brand-500 transition-all whitespace-nowrap';
+                    tabContent.classList.remove('hidden');
+                } else {
+                    tabBtn.className = 'admin-tab text-xs font-bold py-3 px-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-all whitespace-nowrap';
+                    tabContent.classList.add('hidden');
+                }
+            });
+        }
+
+        function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+
+        function saveAdminProfile() {
+            const newName = document.getElementById('inputAdminName').value;
+            document.getElementById('headerAdminName').textContent = newName;
+            document.getElementById('modalAdminName').textContent = newName;
+            showToast("GoDrive admin profile saved!");
+        }
+
+        function triggerAvatarChange() {
+            const sampleAvatars = [
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250"
+            ];
+            const currentImg = document.getElementById('adminProfileImg').src;
+            let nextImg = sampleAvatars.find(a => !currentImg.includes(a)) || sampleAvatars[0];
+            
+            document.getElementById('adminProfileImg').src = nextImg;
+            document.getElementById('headerAdminAvatar').src = nextImg;
+            showToast("Admin avatar updated!");
+        }
+
+        function handleAdminLogout() {
+            closeAdminModal();
+            showToast("Logged out of GoDrive Admin Session.");
+        }
+
+        function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('hidden'); }
+        function scrollToTop() { handleNavClick(null, 'home'); }
+
+        function handleNewsletter(e) {
+            e.preventDefault();
+            e.target.reset();
+            showToast("Thank you for subscribing to GoDrive!");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            
+            toastMsg.textContent = message;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+        }
+    </script>
+</body>
+</html>
